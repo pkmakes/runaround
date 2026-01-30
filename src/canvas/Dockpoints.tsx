@@ -1,9 +1,8 @@
 import { Circle } from 'react-konva'
-import { useRects, useUIMode, usePendingStart, usePaths } from '../state/selectors'
+import { useRects, useUIMode, usePendingStart } from '../state/selectors'
 import { useStore } from '../state/store'
 import type { DockSide, RectNode } from '../state/store'
 import { routePath } from '../lib/routing/router'
-import { applyOverlapOffset } from '../lib/routing/overlap'
 
 const DOCK_RADIUS = 6
 const DOCK_RADIUS_HOVER = 8
@@ -21,7 +20,6 @@ export function Dockpoints() {
   const rects = useRects()
   const mode = useUIMode()
   const pendingStart = usePendingStart()
-  const existingPaths = usePaths()
   const setPendingStart = useStore((s) => s.setPendingStart)
   const addPath = useStore((s) => s.addPath)
   const room = useStore((s) => s.room)
@@ -36,14 +34,10 @@ export function Dockpoints() {
       const from = pendingStart
       const to = { rectId, side }
       
-      // Route the path
-      let points = routePath(from, to, rects, room)
+      // Route the path (always orthogonal, never diagonal)
+      const points = routePath(from, to, rects, room)
       
-      // Apply overlap offset if there are existing paths
-      if (existingPaths.length > 0) {
-        points = applyOverlapOffset(points, existingPaths)
-      }
-      
+      // No more overlap offset - thickness will be increased for overlapping segments
       addPath(from, to, points)
       setPendingStart(null)
     }
