@@ -1,0 +1,314 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg: #1a1a2e;
+  --color-surface: #16213e;
+  --color-surface-alt: #0f3460;
+  --color-accent: #e94560;
+  --color-accent-hover: #ff6b6b;
+  --color-text: #eaeaea;
+  --color-text-muted: #a0a0a0;
+  --color-border: #3a3a5c;
+  --color-canvas-bg: #0d1117;
+  --color-room: #1e2a3a;
+  --color-rect: #2d4a6f;
+  --color-rect-selected: #4a7ab8;
+  --color-path: #e94560;
+  --color-dockpoint: #ffd700;
+  --color-handle: #00ff88;
+  --font-main: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  --font-display: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-main);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.app-container {
+  display: grid;
+  grid-template-rows: 48px 1fr;
+  grid-template-columns: 220px 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar main";
+  height: 100%;
+  width: 100%;
+}
+
+/* Topbar */
+.topbar {
+  grid-area: topbar;
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-alt) 100%);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+.topbar h1 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--color-accent), #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-right: auto;
+}
+
+.topbar-btn {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: all 0.15s ease;
+}
+
+.topbar-btn:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.topbar-btn:active {
+  transform: translateY(0);
+}
+
+/* Sidebar */
+.sidebar {
+  grid-area: sidebar;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-section h3 {
+  font-family: var(--font-display);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+.mode-btn {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.mode-btn:hover {
+  background: var(--color-border);
+}
+
+.mode-btn.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
+.sidebar-input {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: var(--font-main);
+  width: 100%;
+}
+
+.sidebar-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.sidebar-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sidebar-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  min-width: 50px;
+}
+
+/* Main Area */
+.main-area {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.canvas-container {
+  flex: 1;
+  background: var(--color-canvas-bg);
+  position: relative;
+  overflow: hidden;
+  min-height: 300px;
+}
+
+/* Table */
+.paths-table-container {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.paths-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.paths-table th {
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  padding: 10px 12px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.paths-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.paths-table tr:hover {
+  background: rgba(233, 69, 96, 0.05);
+}
+
+.table-input {
+  background: var(--color-bg);
+  border: 1px solid transparent;
+  color: var(--color-text);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--font-main);
+  width: 100%;
+}
+
+.table-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--color-text-muted);
+  padding: 4px;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.delete-btn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.delete-btn:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+/* File input hidden */
+.file-input-hidden {
+  display: none;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--color-accent);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
