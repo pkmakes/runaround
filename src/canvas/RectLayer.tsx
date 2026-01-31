@@ -19,8 +19,8 @@ export function RectLayer() {
   const [resizingId, setResizingId] = useState<string | null>(null)
 
   const handleSelect = (id: string) => {
-    if (mode === 'select') {
-      setState({ ui: { mode: 'select', pendingStart: null, selectedRectId: id } })
+    if (mode === 'layout') {
+      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: id } })
     }
   }
 
@@ -42,14 +42,14 @@ export function RectLayer() {
               y={rect.y}
               width={rect.width}
               height={rect.height}
-              fill={isSelected ? '#4a7ab8' : '#2d4a6f'}
-              stroke={isSelected ? '#00ff88' : '#5a8abb'}
+              fill={isSelected ? '#1d4ed8' : '#3b82f6'}
+              stroke={isSelected ? '#10b981' : '#60a5fa'}
               strokeWidth={isSelected ? 3 : 2}
               cornerRadius={4}
               shadowColor="black"
               shadowBlur={isSelected ? 10 : 5}
               shadowOpacity={0.3}
-              draggable={mode === 'select'}
+              draggable={mode === 'layout'}
               onClick={() => handleSelect(rect.id)}
               onTap={() => handleSelect(rect.id)}
               onDragMove={(e) => {
@@ -74,7 +74,7 @@ export function RectLayer() {
                 setTimeout(triggerRecompute, 0)
               }}
               onMouseEnter={(e) => {
-                if (mode === 'select') {
+                if (mode === 'layout') {
                   const container = e.target.getStage()?.container()
                   if (container) container.style.cursor = 'move'
                 }
@@ -92,8 +92,8 @@ export function RectLayer() {
               width={rect.width - 10}
               text={rect.name}
               fontSize={12}
-              fontFamily="JetBrains Mono, monospace"
-              fill="#eaeaea"
+              fontFamily="Inter, system-ui, sans-serif"
+              fill="#ffffff"
               listening={false}
             />
 
@@ -104,7 +104,7 @@ export function RectLayer() {
                 y={rect.y + rect.height - HANDLE_SIZE}
                 width={HANDLE_SIZE}
                 height={HANDLE_SIZE}
-                fill={isResizing ? '#ff6b6b' : '#00ff88'}
+                fill={isResizing ? '#ef4444' : '#10b981'}
                 stroke="#ffffff"
                 strokeWidth={1}
                 cornerRadius={2}

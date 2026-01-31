@@ -5,23 +5,23 @@
 }
 
 :root {
-  --color-bg: #1a1a2e;
-  --color-surface: #16213e;
-  --color-surface-alt: #0f3460;
-  --color-accent: #e94560;
-  --color-accent-hover: #ff6b6b;
-  --color-text: #eaeaea;
-  --color-text-muted: #a0a0a0;
-  --color-border: #3a3a5c;
-  --color-canvas-bg: #0d1117;
-  --color-room: #1e2a3a;
-  --color-rect: #2d4a6f;
-  --color-rect-selected: #4a7ab8;
-  --color-path: #e94560;
-  --color-dockpoint: #ffd700;
-  --color-handle: #00ff88;
-  --font-main: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
-  --font-display: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-alt: #e8ecf1;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-canvas-bg: #f8fafc;
+  --color-room: #ffffff;
+  --color-rect: #3b82f6;
+  --color-rect-selected: #1d4ed8;
+  --color-path: #ef4444;
+  --color-dockpoint: #f59e0b;
+  --color-handle: #10b981;
+  --font-main: 'Inter', 'SF Pro', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
 html, body, #root {
@@ -135,7 +135,7 @@ html, body, #root {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: white;
-  box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .sidebar-input {
@@ -216,7 +216,7 @@ html, body, #root {
 }
 
 .paths-table tr:hover {
-  background: rgba(233, 69, 96, 0.05);
+  background: rgba(59, 130, 246, 0.08);
 }
 
 .table-input {

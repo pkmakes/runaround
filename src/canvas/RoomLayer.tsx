@@ -24,8 +24,8 @@ export function RoomLayer() {
         y={0}
         width={room.width}
         height={room.height}
-        fill="#1e2a3a"
-        stroke="#3a5a8a"
+        fill="#ffffff"
+        stroke="#cbd5e1"
         strokeWidth={2}
       />
 
@@ -37,7 +37,7 @@ export function RoomLayer() {
           y={0}
           width={1}
           height={room.height}
-          fill="rgba(255,255,255,0.05)"
+          fill="rgba(0,0,0,0.08)"
         />
       ))}
       {Array.from({ length: Math.floor(room.height / 50) + 1 }).map((_, i) => (
@@ -47,7 +47,7 @@ export function RoomLayer() {
           y={i * 50}
           width={room.width}
           height={1}
-          fill="rgba(255,255,255,0.05)"
+          fill="rgba(0,0,0,0.08)"
         />
       ))}
 
@@ -57,7 +57,7 @@ export function RoomLayer() {
         y={room.height - HANDLE_SIZE}
         width={HANDLE_SIZE}
         height={HANDLE_SIZE}
-        fill={isResizing ? '#00ff88' : '#4a7ab8'}
+        fill={isResizing ? '#10b981' : '#3b82f6'}
         stroke="#ffffff"
         strokeWidth={1}
         cornerRadius={2}

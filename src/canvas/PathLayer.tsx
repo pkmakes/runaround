@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 
 const ARROW_POINTER_LENGTH = 12
 const ARROW_POINTER_WIDTH = 10
-const BASE_COLOR = '#e94560'
+const BASE_COLOR = '#ef4444'
 
 export function PathLayer() {
   const paths = usePaths()
@@ -76,7 +76,7 @@ function PathWithSegments({
           strokeWidth={seg.thickness}
           lineCap="round"
           lineJoin="round"
-          shadowColor="rgba(233, 69, 96, 0.4)"
+          shadowColor="rgba(239, 68, 68, 0.4)"
           shadowBlur={4}
           shadowOpacity={0.5}
         />
@@ -98,7 +98,7 @@ function PathWithSegments({
           pointerWidth={ARROW_POINTER_WIDTH}
           lineCap="round"
           lineJoin="round"
-          shadowColor="rgba(233, 69, 96, 0.4)"
+          shadowColor="rgba(239, 68, 68, 0.4)"
           shadowBlur={4}
           shadowOpacity={0.5}
         />

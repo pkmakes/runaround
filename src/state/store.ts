@@ -36,7 +36,7 @@ export type AppState = {
   paths: PathRow[]
   pathOrder: string[]
   ui: {
-    mode: 'select' | 'addRect' | 'addPath'
+    mode: 'layout' | 'addPath'
     pendingStart: { rectId: string; side: DockSide } | null
     selectedRectId: string | null
   }
@@ -69,7 +69,7 @@ const initialState: AppState = {
   paths: [],
   pathOrder: [],
   ui: {
-    mode: 'select',
+    mode: 'layout',
     pendingStart: null,
     selectedRectId: null,
   },

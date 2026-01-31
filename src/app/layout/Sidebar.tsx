@@ -64,16 +64,10 @@ export function Sidebar() {
       <div className="sidebar-section">
         <h3>Modus</h3>
         <button
-          className={`mode-btn ${mode === 'select' ? 'active' : ''}`}
-          onClick={() => setMode('select')}
+          className={`mode-btn ${mode === 'layout' ? 'active' : ''}`}
+          onClick={() => setMode('layout')}
         >
-          ◈ Auswählen
-        </button>
-        <button
-          className={`mode-btn ${mode === 'addRect' ? 'active' : ''}`}
-          onClick={() => setMode('addRect')}
-        >
-          ▢ Rechteck hinzufügen
+          ▢ Layout
         </button>
         <button
           className={`mode-btn ${mode === 'addPath' ? 'active' : ''}`}
@@ -107,16 +101,18 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="sidebar-section">
-        <h3>Rechtecke</h3>
-        <button className="mode-btn" onClick={handleAddRect}>
-          + Neues Rechteck
-        </button>
-      </div>
-
-      {selectedRect && (
+      {mode === 'layout' && (
         <div className="sidebar-section">
-          <h3>Ausgewählt: {selectedRect.name}</h3>
+          <h3>Rechtecke</h3>
+          <button className="mode-btn" onClick={handleAddRect}>
+            + Neues Rechteck
+          </button>
+        </div>
+      )}
+
+      {selectedRect && mode === 'layout' && (
+        <div className="sidebar-section">
+          <h3>Ausgewählt</h3>
           <div className="sidebar-row">
             <span className="sidebar-label">Name</span>
             <input

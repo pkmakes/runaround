@@ -13,7 +13,7 @@ function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setPendingStart(null)
-        setMode('select')
+        setMode('layout')
       }
     }
 

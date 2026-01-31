@@ -56,10 +56,10 @@ export function Dockpoints() {
               x={x}
               y={y}
               radius={isPending ? DOCK_RADIUS_HOVER : DOCK_RADIUS}
-              fill={isPending ? '#00ff88' : '#ffd700'}
+              fill={isPending ? '#10b981' : '#f59e0b'}
               stroke="#ffffff"
               strokeWidth={2}
-              shadowColor="rgba(255, 215, 0, 0.6)"
+              shadowColor="rgba(245, 158, 11, 0.6)"
               shadowBlur={isPending ? 12 : 6}
               shadowOpacity={1}
               onClick={() => handleDockClick(rect.id, side)}

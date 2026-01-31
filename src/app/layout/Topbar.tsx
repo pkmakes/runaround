@@ -40,7 +40,7 @@ export function Topbar() {
           rects: data.rects,
           paths: data.paths,
           pathOrder: data.pathOrder,
-          ui: { mode: 'select', pendingStart: null, selectedRectId: null },
+          ui: { mode: 'layout', pendingStart: null, selectedRectId: null },
         })
       } catch (err) {
         alert('Fehler beim Laden der Datei: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'))
