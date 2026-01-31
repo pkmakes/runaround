@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="76.8" fill="#5fb3b3"/>
+  <g transform="translate(76.8, 76.8)">
+    <!-- Stylized path/arrow representing "Runaround" -->
+    <rect x="25.6" y="51.2" width="128" height="102.4" rx="10.24" fill="white" opacity="0.9"/>
+    <rect x="204.8" y="179.2" width="128" height="102.4" rx="10.24" fill="white" opacity="0.9"/>
+    <!-- Arrow path -->
+    <path d="M92.16 153.6 L92.16 230.4 L204.8 230.4" 
+          stroke="white" stroke-width="20.48" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="266.24,179.2 317.44,230.4 266.24,281.6" fill="white"/>
+  </g>
+</svg>
