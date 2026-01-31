@@ -1,5 +1,5 @@
 import { Line, Arrow, Rect } from 'react-konva'
-import { usePaths, useRects, useUIMode, useSelectedPathId, usePathThickness } from '../state/selectors'
+import { usePaths, useRects, useUIMode, useSelectedPathId, usePathThickness, useHoveredPathId } from '../state/selectors'
 import { useStore } from '../state/store'
 import { calculateSegmentThicknesses } from '../lib/routing/overlap'
 import { useMemo, useState } from 'react'
@@ -24,6 +24,7 @@ export function PathLayer() {
   const paths = usePaths()
   const mode = useUIMode()
   const selectedPathId = useSelectedPathId()
+  const hoveredPathId = useHoveredPathId()
   const pathThickness = usePathThickness()
   const setState = useStore((s) => s.setState)
 
@@ -55,6 +56,7 @@ export function PathLayer() {
         const lastThickness = lastSegment?.thickness || 2
 
         const isSelected = selectedPathId === path.id
+        const isHovered = hoveredPathId === path.id
 
         return (
           <DraggablePath
@@ -65,6 +67,7 @@ export function PathLayer() {
             lastThickness={lastThickness}
             isPathMode={mode === 'addPath'}
             isSelected={isSelected}
+            isHovered={isHovered}
             onPathClick={() => handlePathClick(path.id)}
           />
         )
@@ -94,6 +97,7 @@ function DraggablePath({
   lastThickness,
   isPathMode,
   isSelected,
+  isHovered,
   onPathClick,
 }: {
   pathId: string
@@ -102,6 +106,7 @@ function DraggablePath({
   lastThickness: number
   isPathMode: boolean
   isSelected: boolean
+  isHovered: boolean
   onPathClick: () => void
 }) {
   const updatePathPoints = useStore((s) => s.updatePathPoints)
@@ -164,7 +169,7 @@ function DraggablePath({
     <>
       {/* Render alle Segmente außer dem letzten als Lines */}
       {segmentsWithThickness.slice(0, -1).map((seg, idx) => {
-        const isHovered = hoveredSegment === idx
+        const isSegmentHovered = hoveredSegment === idx
         const isDragging = draggingSegment === idx
         // Segment ist draggable wenn: im Laufweg-Modus, ausgewählt und editierbar
         const canDrag = isPathMode && isSelected && isSegmentEditable(seg, idx)
@@ -173,8 +178,8 @@ function DraggablePath({
           <Line
             key={`seg-${idx}`}
             points={[seg.x1, seg.y1, seg.x2, seg.y2]}
-            stroke={isSelected ? HOVER_COLOR : (isHovered || isDragging ? HOVER_COLOR : BASE_COLOR)}
-            strokeWidth={seg.thickness + (isHovered || isSelected ? 2 : 0)}
+            stroke={(isSelected || isHovered) ? HOVER_COLOR : (isSegmentHovered || isDragging ? HOVER_COLOR : BASE_COLOR)}
+            strokeWidth={seg.thickness + ((isSegmentHovered || isSelected || isHovered) ? 2 : 0)}
             lineCap="round"
             lineJoin="round"
             shadowColor="rgba(95, 179, 179, 0.4)"
@@ -211,9 +216,9 @@ function DraggablePath({
             segmentsWithThickness[lastIdx].x2,
             segmentsWithThickness[lastIdx].y2,
           ]}
-          stroke={isSelected ? HOVER_COLOR : BASE_COLOR}
-          strokeWidth={lastThickness + (isSelected ? 2 : 0)}
-          fill={isSelected ? HOVER_COLOR : BASE_COLOR}
+          stroke={(isSelected || isHovered) ? HOVER_COLOR : BASE_COLOR}
+          strokeWidth={lastThickness + ((isSelected || isHovered) ? 2 : 0)}
+          fill={(isSelected || isHovered) ? HOVER_COLOR : BASE_COLOR}
           pointerLength={ARROW_POINTER_LENGTH}
           pointerWidth={ARROW_POINTER_WIDTH}
           lineCap="round"
@@ -260,7 +265,7 @@ function DraggablePath({
         if (!isSegmentEditable(seg, idx)) return null
         
         const handlePos = getSegmentHandlePosition(seg)
-        const isHovered = hoveredSegment === idx
+        const isSegmentHovered = hoveredSegment === idx
         const isDragging = draggingSegment === idx
         
         return (
@@ -274,7 +279,7 @@ function DraggablePath({
             stroke="#ffffff"
             strokeWidth={1}
             cornerRadius={2}
-            opacity={isHovered || isDragging ? 1 : 0.7}
+            opacity={isSegmentHovered || isDragging ? 1 : 0.7}
             draggable
             dragBoundFunc={(pos) => {
               // Beschränke Drag-Richtung strikt auf eine Achse

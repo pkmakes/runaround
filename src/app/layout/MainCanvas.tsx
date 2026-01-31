@@ -64,7 +64,7 @@ export function MainCanvas() {
       <div className="resizer-handle" onMouseDown={handleMouseDown}>
         <div className="resizer-line" />
       </div>
-      <div style={{ height: tableHeight, minHeight: 100, maxHeight: 600 }}>
+      <div className="table-wrapper" style={{ height: tableHeight, minHeight: 100, maxHeight: 600 }}>
         <PathsTable />
       </div>
     </main>

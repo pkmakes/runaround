@@ -46,6 +46,7 @@ export type AppState = {
     selectedRectId: string | null
     editingRectId: string | null
     selectedPathId: string | null
+    hoveredPathId: string | null
   }
 }
 
@@ -88,6 +89,7 @@ const initialState: AppState = {
     selectedRectId: null,
     editingRectId: null,
     selectedPathId: null,
+    hoveredPathId: null,
   },
 }
 

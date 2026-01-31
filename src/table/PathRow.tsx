@@ -62,6 +62,15 @@ function AutoResizeTextarea({
 export function PathRow({ path, index }: Props) {
   const updatePathFields = useStore((s) => s.updatePathFields)
   const deletePath = useStore((s) => s.deletePath)
+  const setState = useStore((s) => s.setState)
+
+  const handleMouseEnter = () => {
+    setState({ ui: { ...useStore.getState().ui, hoveredPathId: path.id } })
+  }
+
+  const handleMouseLeave = () => {
+    setState({ ui: { ...useStore.getState().ui, hoveredPathId: null } })
+  }
 
   const {
     attributes,
@@ -81,7 +90,12 @@ export function PathRow({ path, index }: Props) {
   const distance = manhattanLength(path.points)
 
   return (
-    <tr ref={setNodeRef} style={style}>
+    <tr 
+      ref={setNodeRef} 
+      style={style}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <td>
         <span className="drag-handle" {...attributes} {...listeners}>
           ⋮⋮
