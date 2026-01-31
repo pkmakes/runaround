@@ -6,7 +6,7 @@
   "background_color": "#f4f6f8",
   "display": "standalone",
   "orientation": "landscape",
-  "start_url": "/",
+  "start_url": "/runaround/",
   "icons": [
     {
       "src": "pwa-192x192.svg",
@@ -26,4 +26,3 @@
     }
   ]
 }
-
