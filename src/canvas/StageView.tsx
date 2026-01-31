@@ -48,9 +48,9 @@ export function StageView() {
     
     // Im Layout- und Laufweg-Modus: Alles deselektieren
     if (mode === 'layout') {
-      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null } })
+      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null, hoveredPathId: null } })
     } else if (mode === 'addPath') {
-      setState({ ui: { mode: 'addPath', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null } })
+      setState({ ui: { mode: 'addPath', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null, hoveredPathId: null } })
     }
   }
 

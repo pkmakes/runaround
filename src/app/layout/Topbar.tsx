@@ -43,7 +43,7 @@ export function Topbar() {
           paths: data.paths,
           pathOrder: data.pathOrder,
           hasUnsavedChanges: false,
-          ui: { mode: 'layout', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null },
+          ui: { mode: 'layout', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null, hoveredPathId: null },
         })
       } catch (err) {
         alert('Fehler beim Laden der Datei: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'))

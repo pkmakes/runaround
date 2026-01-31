@@ -39,7 +39,7 @@ export function RectNameEditor() {
   }
 
   const closeEditor = () => {
-    setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: editingRectId, editingRectId: null, selectedPathId: null } })
+    setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: editingRectId, editingRectId: null, selectedPathId: null, hoveredPathId: null } })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

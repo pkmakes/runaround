@@ -35,7 +35,7 @@ export function PathLayer() {
     if (mode === 'addPath') {
       // Im Laufweg-Modus: Pfad auswählen/abwählen
       const newSelectedId = selectedPathId === pathId ? null : pathId
-      setState({ ui: { mode: 'addPath', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: newSelectedId } })
+      setState({ ui: { mode: 'addPath', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: newSelectedId, hoveredPathId: null } })
     }
   }
 

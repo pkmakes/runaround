@@ -111,7 +111,8 @@ export function Sidebar() {
           pendingStart: null, 
           selectedRectId: newRectId, 
           editingRectId: newRectId,
-          selectedPathId: null 
+          selectedPathId: null,
+          hoveredPathId: null 
         } 
       })
     }

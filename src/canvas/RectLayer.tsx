@@ -96,13 +96,13 @@ export function RectLayer() {
 
   const handleSelect = (id: string) => {
     if (mode === 'layout') {
-      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: id, editingRectId: null, selectedPathId: null } })
+      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: id, editingRectId: null, selectedPathId: null, hoveredPathId: null } })
     }
   }
 
   const handleDoubleClick = (id: string) => {
     if (mode === 'layout') {
-      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: id, editingRectId: id, selectedPathId: null } })
+      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: id, editingRectId: id, selectedPathId: null, hoveredPathId: null } })
     }
   }
 
