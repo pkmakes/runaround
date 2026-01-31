@@ -2,8 +2,7 @@ import { useRef } from 'react'
 import { useStore } from '../../state/store'
 import { downloadProjectJson, loadProjectJson } from '../../lib/persistence/saveLoad'
 import { exportExcel } from '../../lib/export/exportExcel'
-import { exportPdfTable } from '../../lib/export/exportPdfTable'
-import { exportPdfDiagram } from '../../lib/export/exportPdfDiagram'
+import { exportPdfCombined } from '../../lib/export/exportPdfCombined'
 import { stageRef } from '../../canvas/stageRef'
 
 export function Topbar() {
@@ -12,6 +11,8 @@ export function Topbar() {
   const setState = useStore((s) => s.setState)
   const paths = useStore((s) => s.paths)
   const pathOrder = useStore((s) => s.pathOrder)
+  const hasUnsavedChanges = useStore((s) => s.hasUnsavedChanges)
+  const markAsSaved = useStore((s) => s.markAsSaved)
 
   const getState = () => useStore.getState()
 
@@ -24,6 +25,7 @@ export function Topbar() {
   const handleSave = () => {
     const state = getState()
     downloadProjectJson(state)
+    markAsSaved()
   }
 
   const handleLoad = () => {
@@ -40,7 +42,8 @@ export function Topbar() {
           rects: data.rects,
           paths: data.paths,
           pathOrder: data.pathOrder,
-          ui: { mode: 'layout', pendingStart: null, selectedRectId: null },
+          hasUnsavedChanges: false,
+          ui: { mode: 'layout', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null },
         })
       } catch (err) {
         alert('Fehler beim Laden der Datei: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'))
@@ -57,21 +60,16 @@ export function Topbar() {
     exportExcel(paths, pathOrder)
   }
 
-  const handleExportPdfTable = () => {
-    if (paths.length === 0) {
-      alert('Keine Laufwege zum Exportieren vorhanden.')
-      return
-    }
-    exportPdfTable(paths, pathOrder)
-  }
-
-  const handleExportPdfDiagram = () => {
-    exportPdfDiagram(stageRef.current)
+  const handleExportPdf = () => {
+    exportPdfCombined(stageRef.current, paths, pathOrder)
   }
 
   return (
     <header className="topbar">
-      <h1>🍝 Spaghetti Diagram Builder</h1>
+      <h1>
+        Runaround
+        {hasUnsavedChanges && <span className="unsaved-indicator" title="Ungespeicherte Änderungen">●</span>}
+      </h1>
       <button className="topbar-btn" onClick={handleNew}>
         Neu
       </button>
@@ -91,11 +89,8 @@ export function Topbar() {
       <button className="topbar-btn" onClick={handleExportExcel}>
         Export Excel
       </button>
-      <button className="topbar-btn" onClick={handleExportPdfTable}>
-        Export PDF (Tabelle)
-      </button>
-      <button className="topbar-btn" onClick={handleExportPdfDiagram}>
-        Export PDF (Diagramm)
+      <button className="topbar-btn" onClick={handleExportPdf}>
+        Export PDF
       </button>
     </header>
   )

@@ -12,6 +12,7 @@ export type RectNode = {
   y: number
   width: number
   height: number
+  color: string
 }
 
 export type PathFields = {
@@ -28,6 +29,7 @@ export type PathRow = {
   points: number[]
   fields: PathFields
   createdAt: number
+  isManuallyEdited: boolean
 }
 
 export type AppState = {
@@ -35,10 +37,15 @@ export type AppState = {
   rects: RectNode[]
   paths: PathRow[]
   pathOrder: string[]
+  rectFontSize: number
+  pathThickness: number
+  hasUnsavedChanges: boolean
   ui: {
     mode: 'layout' | 'addPath'
     pendingStart: { rectId: string; side: DockSide } | null
     selectedRectId: string | null
+    editingRectId: string | null
+    selectedPathId: string | null
   }
 }
 
@@ -56,22 +63,31 @@ type Actions = {
     points: number[]
   ) => void
   updatePathFields: (id: string, patchFields: Partial<PathFields>) => void
+  updatePathPoints: (id: string, points: number[]) => void
   deletePath: (id: string) => void
   reorderPaths: (newOrderIds: string[]) => void
   recomputeAllPaths: (router: (from: { rectId: string; side: DockSide }, to: { rectId: string; side: DockSide }, rects: RectNode[], room: Room) => number[]) => void
   setState: (state: Partial<AppState>) => void
+  setRectFontSize: (size: number) => void
+  setPathThickness: (thickness: number) => void
   reset: () => void
+  markAsSaved: () => void
 }
 
 const initialState: AppState = {
-  room: { width: 800, height: 600 },
+  room: { width: 1200, height: 600 },
   rects: [],
   paths: [],
   pathOrder: [],
+  rectFontSize: 12,
+  pathThickness: 2,
+  hasUnsavedChanges: false,
   ui: {
     mode: 'layout',
     pendingStart: null,
     selectedRectId: null,
+    editingRectId: null,
+    selectedPathId: null,
   },
 }
 
@@ -83,14 +99,16 @@ export const useStore = create<AppState & Actions>()(
 
     setRoomSize: (width, height) =>
       set((state) => {
-        state.room.width = Math.max(200, width)
-        state.room.height = Math.max(200, height)
+        state.room.width = Math.min(10000, Math.max(200, width))
+        state.room.height = Math.min(5000, Math.max(200, height))
+        state.hasUnsavedChanges = true
       }),
 
     resizeRoomByHandle: (newWidth, newHeight) =>
       set((state) => {
-        state.room.width = Math.max(200, newWidth)
-        state.room.height = Math.max(200, newHeight)
+        state.room.width = Math.min(10000, Math.max(200, newWidth))
+        state.room.height = Math.min(5000, Math.max(200, newHeight))
+        state.hasUnsavedChanges = true
       }),
 
     addRect: ({ width, height, name }) =>
@@ -106,7 +124,9 @@ export const useStore = create<AppState & Actions>()(
           y: Math.max(0, y),
           width,
           height,
+          color: '#d1d5db', // Helles Grau als Standard
         })
+        state.hasUnsavedChanges = true
       }),
 
     updateRect: (id, patch) =>
@@ -114,6 +134,7 @@ export const useStore = create<AppState & Actions>()(
         const rect = state.rects.find((r) => r.id === id)
         if (rect) {
           Object.assign(rect, patch)
+          state.hasUnsavedChanges = true
         }
       }),
 
@@ -132,6 +153,7 @@ export const useStore = create<AppState & Actions>()(
         if (state.ui.selectedRectId === id) {
           state.ui.selectedRectId = null
         }
+        state.hasUnsavedChanges = true
       }),
 
     setMode: (mode) =>
@@ -160,9 +182,11 @@ export const useStore = create<AppState & Actions>()(
             kommentar: '',
           },
           createdAt: Date.now(),
+          isManuallyEdited: false,
         }
         state.paths.push(newPath)
         state.pathOrder.push(id)
+        state.hasUnsavedChanges = true
       }),
 
     updatePathFields: (id, patchFields) =>
@@ -170,6 +194,17 @@ export const useStore = create<AppState & Actions>()(
         const path = state.paths.find((p) => p.id === id)
         if (path) {
           Object.assign(path.fields, patchFields)
+          state.hasUnsavedChanges = true
+        }
+      }),
+
+    updatePathPoints: (id, points) =>
+      set((state) => {
+        const path = state.paths.find((p) => p.id === id)
+        if (path) {
+          path.points = points
+          path.isManuallyEdited = true
+          state.hasUnsavedChanges = true
         }
       }),
 
@@ -177,11 +212,13 @@ export const useStore = create<AppState & Actions>()(
       set((state) => {
         state.paths = state.paths.filter((p) => p.id !== id)
         state.pathOrder = state.pathOrder.filter((pid) => pid !== id)
+        state.hasUnsavedChanges = true
       }),
 
     reorderPaths: (newOrderIds) =>
       set((state) => {
         state.pathOrder = newOrderIds
+        state.hasUnsavedChanges = true
       }),
 
     recomputeAllPaths: (router) =>
@@ -193,6 +230,9 @@ export const useStore = create<AppState & Actions>()(
         for (const pathId of pathOrder) {
           const path = state.paths.find((p) => p.id === pathId)
           if (!path) continue
+          
+          // Manuell bearbeitete Pfade nicht automatisch neu berechnen
+          if (path.isManuallyEdited) continue
           
           const fromRect = rects.find((r) => r.id === path.from.rectId)
           const toRect = rects.find((r) => r.id === path.to.rectId)
@@ -216,11 +256,28 @@ export const useStore = create<AppState & Actions>()(
         Object.assign(state, newState)
       }),
 
+    setRectFontSize: (size) =>
+      set((state) => {
+        state.rectFontSize = Math.min(24, Math.max(8, size))
+        state.hasUnsavedChanges = true
+      }),
+
+    setPathThickness: (thickness) =>
+      set((state) => {
+        state.pathThickness = Math.min(8, Math.max(1, thickness))
+        state.hasUnsavedChanges = true
+      }),
+
     reset: () =>
       set(() => ({
         ...initialState,
         ui: { ...initialState.ui },
       })),
+
+    markAsSaved: () =>
+      set((state) => {
+        state.hasUnsavedChanges = false
+      }),
   }))
 )
 

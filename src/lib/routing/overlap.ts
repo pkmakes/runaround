@@ -11,9 +11,10 @@ export type Segment = {
 
 export type SegmentWithThickness = Segment & {
   thickness: number
+  segmentIndex: number
 }
 
-const BASE_THICKNESS = 2
+const DEFAULT_BASE_THICKNESS = 2
 
 export function getSegmentsFromPoints(points: number[]): Segment[] {
   const segments: Segment[] = []
@@ -66,7 +67,8 @@ function segmentsAreCollinearAndOverlap(seg1: Segment, seg2: Segment): boolean {
 // Calculate thickness for each segment based on overlaps with other paths
 export function calculateSegmentThicknesses(
   pathPoints: number[],
-  allPathsPoints: number[][]
+  allPathsPoints: number[][],
+  baseThickness: number = DEFAULT_BASE_THICKNESS
 ): SegmentWithThickness[] {
   const segments = getSegmentsFromPoints(pathPoints)
   
@@ -78,7 +80,7 @@ export function calculateSegmentThicknesses(
   }
 
   // Calculate thickness for each segment
-  return segments.map((segment) => {
+  return segments.map((segment, index) => {
     let overlapCount = 1 // Start with 1 (this segment itself)
     
     for (const other of otherSegments) {
@@ -89,7 +91,8 @@ export function calculateSegmentThicknesses(
 
     return {
       ...segment,
-      thickness: overlapCount * BASE_THICKNESS,
+      thickness: overlapCount * baseThickness,
+      segmentIndex: index,
     }
   })
 }

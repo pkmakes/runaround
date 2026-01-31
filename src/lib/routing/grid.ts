@@ -33,9 +33,18 @@ export function buildObstacleGrid(
   const gridWidth = Math.ceil(room.width / cellSize)
   const gridHeight = Math.ceil(room.height / cellSize)
 
-  for (let gy = 0; gy <= gridHeight; gy++) {
-    for (let gx = 0; gx <= gridWidth; gx++) {
+  // Include some cells outside for routing exploration, but mark them as blocked
+  const extraCells = 10
+
+  for (let gy = -extraCells; gy <= gridHeight + extraCells; gy++) {
+    for (let gx = -extraCells; gx <= gridWidth + extraCells; gx++) {
       const { x, y } = gridToWorld(gx, gy, cellSize)
+
+      // STRICT: Block cells outside the room boundaries
+      if (x < 0 || x > room.width || y < 0 || y > room.height) {
+        blocked.add(`${gx},${gy}`)
+        continue
+      }
 
       // Check if point is inside any expanded rect
       for (const rect of rects) {
@@ -48,11 +57,6 @@ export function buildObstacleGrid(
           blocked.add(`${gx},${gy}`)
           break
         }
-      }
-
-      // Also block cells outside the room
-      if (x < -marginPx || x > room.width + marginPx || y < -marginPx || y > room.height + marginPx) {
-        blocked.add(`${gx},${gy}`)
       }
     }
   }
@@ -68,3 +72,10 @@ export function getKey(gx: number, gy: number): string {
   return `${gx},${gy}`
 }
 
+// Clamp a point to be within room boundaries
+export function clampToRoom(x: number, y: number, room: Room): { x: number; y: number } {
+  return {
+    x: Math.max(0, Math.min(room.width, x)),
+    y: Math.max(0, Math.min(room.height, y)),
+  }
+}

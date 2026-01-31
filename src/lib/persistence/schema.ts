@@ -14,6 +14,7 @@ export const RectNodeSchema = z.object({
   y: z.number(),
   width: z.number().min(40),
   height: z.number().min(40),
+  color: z.string().optional().default('#d1d5db'),
 })
 
 export const PathFieldsSchema = z.object({
@@ -36,6 +37,7 @@ export const PathRowSchema = z.object({
   points: z.array(z.number()),
   fields: PathFieldsSchema,
   createdAt: z.number(),
+  isManuallyEdited: z.boolean().optional().default(false),
 })
 
 export const ProjectSchema = z.object({

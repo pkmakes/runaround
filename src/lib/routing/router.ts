@@ -1,6 +1,6 @@
 import type { DockSide, RectNode, Room } from '../../state/store'
 import { getDockPoint, getExitDirection } from '../geometry'
-import { buildObstacleGrid, worldToGrid, gridToWorld, DEFAULT_CELL_SIZE } from './grid'
+import { buildObstacleGrid, worldToGrid, gridToWorld, DEFAULT_CELL_SIZE, clampToRoom } from './grid'
 import { astar } from './astar'
 
 const STUB_CELLS = 3
@@ -27,16 +27,18 @@ export function routePath(
   const exitDirStart = getExitDirection(from.side)
   const exitDirEnd = getExitDirection(to.side)
 
-  // Create stubs - points outside the rectangles
-  const stubStart = {
+  // Create stubs - points outside the rectangles, but clamped to room boundaries
+  const stubStartRaw = {
     x: dockStart.x + exitDirStart.dx * cellSize * STUB_CELLS,
     y: dockStart.y + exitDirStart.dy * cellSize * STUB_CELLS,
   }
+  const stubStart = clampToRoom(stubStartRaw.x, stubStartRaw.y, room)
 
-  const stubEnd = {
+  const stubEndRaw = {
     x: dockEnd.x + exitDirEnd.dx * cellSize * STUB_CELLS,
     y: dockEnd.y + exitDirEnd.dy * cellSize * STUB_CELLS,
   }
+  const stubEnd = clampToRoom(stubEndRaw.x, stubEndRaw.y, room)
 
   // Try routing with different parameters - progressively smaller cell sizes
   const attempts: { cellSize: number; margin: number }[] = [
@@ -62,9 +64,9 @@ export function routePath(
       attempt.cellSize,
       attempt.margin
     )
-    if (result && !pathCrossesAnyRect(result, rects, from.rectId, to.rectId)) {
-      // Ensure all segments are orthogonal
-      return ensureOrthogonal(result)
+    if (result && !pathCrossesAnyRect(result, rects, from.rectId, to.rectId) && !pathExceedsRoom(result, room)) {
+      // Ensure all segments are orthogonal and within room
+      return clampPathToRoom(ensureOrthogonal(result), room)
     }
   }
 
@@ -82,13 +84,35 @@ export function routePath(
     1
   )
   
-  if (lastResort && !pathCrossesAnyRect(lastResort, rects, from.rectId, to.rectId)) {
-    return ensureOrthogonal(lastResort)
+  if (lastResort && !pathCrossesAnyRect(lastResort, rects, from.rectId, to.rectId) && !pathExceedsRoom(lastResort, room)) {
+    return clampPathToRoom(ensureOrthogonal(lastResort), room)
   }
 
   // If still no valid path, create a path that goes around via room edges
   const edgePath = createEdgePath(dockStart, dockEnd, fromRect, toRect, from.side, to.side, room)
-  return ensureOrthogonal(edgePath)
+  return clampPathToRoom(ensureOrthogonal(edgePath), room)
+}
+
+// Check if any point in the path exceeds room boundaries
+function pathExceedsRoom(points: number[], room: Room): boolean {
+  for (let i = 0; i < points.length; i += 2) {
+    const x = points[i]
+    const y = points[i + 1]
+    if (x < 0 || x > room.width || y < 0 || y > room.height) {
+      return true
+    }
+  }
+  return false
+}
+
+// Clamp all points in a path to room boundaries
+function clampPathToRoom(points: number[], room: Room): number[] {
+  const result: number[] = []
+  for (let i = 0; i < points.length; i += 2) {
+    const clamped = clampToRoom(points[i], points[i + 1], room)
+    result.push(clamped.x, clamped.y)
+  }
+  return result
 }
 
 // Ensures all segments are strictly horizontal or vertical
@@ -303,7 +327,10 @@ function createEdgePath(
   toSide: DockSide,
   room: Room
 ): number[] {
-  const margin = 20
+  // Use a margin from the edge, but stay inside
+  const margin = 15
+  const safeMargin = Math.min(margin, room.width / 4, room.height / 4)
+  
   const exitDir = getExitDirection(fromSide)
   const entryDir = getExitDirection(toSide)
 
@@ -312,29 +339,31 @@ function createEdgePath(
   // Start at dock
   points.push({ x: dockStart.x, y: dockStart.y })
 
-  // First exit point - move orthogonally from dock
-  const exitPoint = {
-    x: dockStart.x + exitDir.dx * margin,
-    y: dockStart.y + exitDir.dy * margin,
+  // First exit point - move orthogonally from dock, clamped to room
+  const exitPointRaw = {
+    x: dockStart.x + exitDir.dx * safeMargin,
+    y: dockStart.y + exitDir.dy * safeMargin,
   }
+  const exitPoint = clampToRoom(exitPointRaw.x, exitPointRaw.y, room)
   points.push(exitPoint)
 
   // Entry point - where we need to arrive before the final dock
-  const entryPoint = {
-    x: dockEnd.x + entryDir.dx * margin,
-    y: dockEnd.y + entryDir.dy * margin,
+  const entryPointRaw = {
+    x: dockEnd.x + entryDir.dx * safeMargin,
+    y: dockEnd.y + entryDir.dy * safeMargin,
   }
+  const entryPoint = clampToRoom(entryPointRaw.x, entryPointRaw.y, room)
 
   // Determine which edge to use based on positions
   const centerStart = { x: fromRect.x + fromRect.width / 2, y: fromRect.y + fromRect.height / 2 }
 
-  // Create intermediate orthogonal path
+  // Create intermediate orthogonal path, staying within room
   if (exitDir.dx !== 0) {
     // Horizontal exit
     if (entryDir.dx !== 0) {
       // Both horizontal - go via top or bottom edge
       const goTop = centerStart.y > room.height / 2
-      const edgeY = goTop ? margin : room.height - margin
+      const edgeY = goTop ? safeMargin : room.height - safeMargin
       // First go vertical to edge
       points.push({ x: exitPoint.x, y: edgeY })
       // Then go horizontal to entry x
@@ -348,7 +377,7 @@ function createEdgePath(
     if (entryDir.dy !== 0) {
       // Both vertical - go via left or right edge
       const goLeft = centerStart.x > room.width / 2
-      const edgeX = goLeft ? margin : room.width - margin
+      const edgeX = goLeft ? safeMargin : room.width - safeMargin
       // First go horizontal to edge
       points.push({ x: edgeX, y: exitPoint.y })
       // Then go vertical to entry y

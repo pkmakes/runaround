@@ -31,6 +31,6 @@ export function exportExcel(paths: PathRow[], pathOrder: string[]): void {
   ]
   worksheet['!cols'] = colWidths
 
-  XLSX.writeFile(workbook, `spaghetti-laufwege-${new Date().toISOString().slice(0, 10)}.xlsx`)
+  XLSX.writeFile(workbook, `runaround-laufwege-${new Date().toISOString().slice(0, 10)}.xlsx`)
 }
 

@@ -20,7 +20,7 @@ export function downloadProjectJson(state: AppState): void {
   
   const a = document.createElement('a')
   a.href = url
-  a.download = `spaghetti-diagram-${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `runaround-${new Date().toISOString().slice(0, 10)}.json`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -34,7 +34,7 @@ export async function loadProjectJson(file: File): Promise<ProjectData> {
   return validated
 }
 
-const STORAGE_KEY = 'spaghetti_project'
+const STORAGE_KEY = 'runaround_project'
 
 export function saveToLocalStorage(state: AppState): void {
   try {

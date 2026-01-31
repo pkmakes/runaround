@@ -1,20 +1,33 @@
-import { Rect } from 'react-konva'
-import { useRoom } from '../state/selectors'
+import { Rect, Circle } from 'react-konva'
+import { useRoom, useUIMode } from '../state/selectors'
 import { useStore } from '../state/store'
 import { useState, useCallback } from 'react'
 import { routePath } from '../lib/routing/router'
 
 const HANDLE_SIZE = 16
+const MAX_ROOM_WIDTH = 10000
+const MAX_ROOM_HEIGHT = 5000
 
 export function RoomLayer() {
   const room = useRoom()
+  const mode = useUIMode()
   const resizeRoomByHandle = useStore((s) => s.resizeRoomByHandle)
   const recomputeAllPaths = useStore((s) => s.recomputeAllPaths)
+  const setState = useStore((s) => s.setState)
   const [isResizing, setIsResizing] = useState(false)
 
   const triggerRecompute = useCallback(() => {
     recomputeAllPaths(routePath)
   }, [recomputeAllPaths])
+
+  const handleRoomClick = () => {
+    // Im Layout- und Laufweg-Modus: Alles deselektieren bei Klick auf leere Fläche
+    if (mode === 'layout') {
+      setState({ ui: { mode: 'layout', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null } })
+    } else if (mode === 'addPath') {
+      setState({ ui: { mode: 'addPath', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null } })
+    }
+  }
 
   return (
     <>
@@ -27,29 +40,30 @@ export function RoomLayer() {
         fill="#ffffff"
         stroke="#cbd5e1"
         strokeWidth={2}
+        onClick={handleRoomClick}
+        onTap={handleRoomClick}
       />
 
-      {/* Grid pattern */}
-      {Array.from({ length: Math.floor(room.width / 50) + 1 }).map((_, i) => (
-        <Rect
-          key={`vline-${i}`}
-          x={i * 50}
-          y={0}
-          width={1}
-          height={room.height}
-          fill="rgba(0,0,0,0.08)"
-        />
-      ))}
-      {Array.from({ length: Math.floor(room.height / 50) + 1 }).map((_, i) => (
-        <Rect
-          key={`hline-${i}`}
-          x={0}
-          y={i * 50}
-          width={room.width}
-          height={1}
-          fill="rgba(0,0,0,0.08)"
-        />
-      ))}
+      {/* Dotted grid pattern */}
+      {(() => {
+        const dots = []
+        const spacing = 50
+        for (let x = 0; x <= room.width; x += spacing) {
+          for (let y = 0; y <= room.height; y += spacing) {
+            dots.push(
+              <Circle
+                key={`dot-${x}-${y}`}
+                x={x}
+                y={y}
+                radius={2.5}
+                fill="#d1d5db"
+                listening={false}
+              />
+            )
+          }
+        }
+        return dots
+      })()}
 
       {/* Resize handle */}
       <Rect
@@ -65,15 +79,12 @@ export function RoomLayer() {
         onDragStart={() => setIsResizing(true)}
         onDragMove={(e) => {
           const node = e.target
-          const newWidth = node.x() + HANDLE_SIZE
-          const newHeight = node.y() + HANDLE_SIZE
-          resizeRoomByHandle(
-            Math.max(200, Math.round(newWidth)),
-            Math.max(200, Math.round(newHeight))
-          )
+          const newWidth = Math.min(MAX_ROOM_WIDTH, Math.max(200, Math.round(node.x() + HANDLE_SIZE)))
+          const newHeight = Math.min(MAX_ROOM_HEIGHT, Math.max(200, Math.round(node.y() + HANDLE_SIZE)))
+          resizeRoomByHandle(newWidth, newHeight)
           // Reset position relative to new room size
-          node.x(Math.max(200, Math.round(newWidth)) - HANDLE_SIZE)
-          node.y(Math.max(200, Math.round(newHeight)) - HANDLE_SIZE)
+          node.x(newWidth - HANDLE_SIZE)
+          node.y(newHeight - HANDLE_SIZE)
         }}
         onDragEnd={() => {
           setIsResizing(false)

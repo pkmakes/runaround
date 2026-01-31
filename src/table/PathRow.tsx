@@ -3,10 +3,60 @@ import { CSS } from '@dnd-kit/utilities'
 import type { PathRow as PathRowType } from '../state/store'
 import { useStore } from '../state/store'
 import { manhattanLength } from '../lib/geometry'
+import { useRef, useEffect, useCallback } from 'react'
 
 type Props = {
   path: PathRowType
   index: number
+}
+
+// Auto-resizing textarea component
+function AutoResizeTextarea({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const maxLines = 10
+  const lineHeight = 20 // px per line
+
+  const adjustHeight = useCallback(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto'
+    
+    // Calculate new height
+    const maxHeight = maxLines * lineHeight
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight)
+    
+    textarea.style.height = `${newHeight}px`
+    
+    // Enable scrolling if content exceeds max height
+    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden'
+  }, [])
+
+  useEffect(() => {
+    adjustHeight()
+  }, [value, adjustHeight])
+
+  return (
+    <textarea
+      ref={textareaRef}
+      className="table-textarea"
+      value={value}
+      onChange={(e) => {
+        onChange(e.target.value)
+      }}
+      placeholder={placeholder}
+      rows={1}
+    />
+  )
 }
 
 export function PathRow({ path, index }: Props) {
@@ -39,53 +89,45 @@ export function PathRow({ path, index }: Props) {
       </td>
       <td>{index + 1}</td>
       <td>
-        <input
-          type="text"
-          className="table-input"
+        <AutoResizeTextarea
           value={path.fields.description}
-          onChange={(e) =>
-            updatePathFields(path.id, { description: e.target.value })
+          onChange={(value) =>
+            updatePathFields(path.id, { description: value })
           }
           placeholder="Beschreibung..."
         />
       </td>
       <td>
-        <input
-          type="text"
-          className="table-input"
+        <AutoResizeTextarea
           value={path.fields.knackpunkt}
-          onChange={(e) =>
-            updatePathFields(path.id, { knackpunkt: e.target.value })
+          onChange={(value) =>
+            updatePathFields(path.id, { knackpunkt: value })
           }
           placeholder="Knackpunkt..."
         />
       </td>
       <td>
-        <input
-          type="text"
-          className="table-input"
+        <AutoResizeTextarea
           value={path.fields.begruendung}
-          onChange={(e) =>
-            updatePathFields(path.id, { begruendung: e.target.value })
+          onChange={(value) =>
+            updatePathFields(path.id, { begruendung: value })
           }
           placeholder="Begründung..."
         />
       </td>
       <td>
-        <input
-          type="text"
-          className="table-input"
+        <AutoResizeTextarea
           value={path.fields.kommentar}
-          onChange={(e) =>
-            updatePathFields(path.id, { kommentar: e.target.value })
+          onChange={(value) =>
+            updatePathFields(path.id, { kommentar: value })
           }
           placeholder="Kommentar..."
         />
       </td>
-      <td style={{ textAlign: 'center', fontFamily: 'monospace' }}>
+      <td style={{ textAlign: 'center', fontFamily: 'monospace', verticalAlign: 'top', paddingTop: '12px' }}>
         {distance}px
       </td>
-      <td>
+      <td style={{ verticalAlign: 'top', paddingTop: '8px' }}>
         <button className="delete-btn" onClick={() => deletePath(path.id)}>
           ✕
         </button>
@@ -93,4 +135,3 @@ export function PathRow({ path, index }: Props) {
     </tr>
   )
 }
-
