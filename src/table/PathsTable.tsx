@@ -29,17 +29,28 @@ export function PathsTable() {
   if (orderedPaths.length === 0) {
     return (
       <div className="paths-table-container">
-        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-surface-alt)' }}>
-          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Laufwege</span>
-          <button
-            className="mode-btn"
-            onClick={addEmptyPathRow}
-            style={{ padding: '4px 10px', fontSize: '11px' }}
-            title="Leere Zeile hinzufügen"
-          >
-            + Leere Zeile
-          </button>
-        </div>
+        <table className="paths-table">
+          <thead>
+            <tr>
+              <th style={{ width: '40px', textAlign: 'center' }}>
+                <button
+                  className="table-add-btn"
+                  onClick={addEmptyPathRow}
+                  title="Leere Zeile hinzufügen"
+                >
+                  +
+                </button>
+              </th>
+              <th style={{ width: '50px' }}>Nr.</th>
+              <th>Beschreibung</th>
+              <th>Knackpunkt</th>
+              <th>Begründung</th>
+              <th>Kommentar</th>
+              <th style={{ width: '80px' }}>Distanz</th>
+              <th style={{ width: '60px' }}></th>
+            </tr>
+          </thead>
+        </table>
         <div style={{ padding: '20px', textAlign: 'center', color: '#a0a0a0' }}>
           Keine Laufwege vorhanden. Wechsle in den Modus "Laufweg erstellen" und klicke auf zwei Dockpoints.
         </div>
@@ -49,22 +60,19 @@ export function PathsTable() {
 
   return (
     <div className="paths-table-container">
-      <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-surface-alt)' }}>
-        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Laufwege</span>
-        <button
-          className="mode-btn"
-          onClick={addEmptyPathRow}
-          style={{ padding: '4px 10px', fontSize: '11px' }}
-          title="Leere Zeile hinzufügen"
-        >
-          + Leere Zeile
-        </button>
-      </div>
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <table className="paths-table">
           <thead>
             <tr>
-              <th style={{ width: '40px' }}></th>
+              <th style={{ width: '40px', textAlign: 'center' }}>
+                <button
+                  className="table-add-btn"
+                  onClick={addEmptyPathRow}
+                  title="Leere Zeile hinzufügen"
+                >
+                  +
+                </button>
+              </th>
               <th style={{ width: '50px' }}>Nr.</th>
               <th>Beschreibung</th>
               <th>Knackpunkt</th>
