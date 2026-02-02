@@ -42,7 +42,7 @@ export function PathLayer() {
   return (
     <>
       {paths.map((path) => {
-        if (path.points.length < 4) return null
+        if (path.isPlaceholder || path.points.length < 4) return null
 
         // Calculate thickness for each segment
         const segmentsWithThickness = calculateSegmentThicknesses(

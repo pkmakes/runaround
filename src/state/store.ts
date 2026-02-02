@@ -30,6 +30,7 @@ export type PathRow = {
   fields: PathFields
   createdAt: number
   isManuallyEdited: boolean
+  isPlaceholder?: boolean
 }
 
 export type AppState = {
@@ -63,6 +64,7 @@ type Actions = {
     to: { rectId: string; side: DockSide },
     points: number[]
   ) => void
+  addEmptyPathRow: () => void
   updatePathFields: (id: string, patchFields: Partial<PathFields>) => void
   updatePathPoints: (id: string, points: number[]) => void
   deletePath: (id: string) => void
@@ -187,6 +189,29 @@ export const useStore = create<AppState & Actions>()(
           isManuallyEdited: false,
         }
         state.paths.push(newPath)
+        state.pathOrder.push(id)
+        state.hasUnsavedChanges = true
+      }),
+
+    addEmptyPathRow: () =>
+      set((state) => {
+        const id = `path-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        const emptyPath: PathRow = {
+          id,
+          from: { rectId: '', side: 'top' },
+          to: { rectId: '', side: 'top' },
+          points: [],
+          fields: {
+            description: '',
+            knackpunkt: '',
+            begruendung: '',
+            kommentar: '',
+          },
+          createdAt: Date.now(),
+          isManuallyEdited: false,
+          isPlaceholder: true,
+        }
+        state.paths.push(emptyPath)
         state.pathOrder.push(id)
         state.hasUnsavedChanges = true
       }),

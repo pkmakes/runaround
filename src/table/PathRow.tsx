@@ -87,7 +87,9 @@ export function PathRow({ path, index }: Props) {
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const distance = manhattanLength(path.points)
+  const distance = path.isPlaceholder || path.points.length === 0 
+    ? null 
+    : manhattanLength(path.points)
 
   return (
     <tr 
@@ -138,8 +140,8 @@ export function PathRow({ path, index }: Props) {
           placeholder="Kommentar..."
         />
       </td>
-      <td style={{ textAlign: 'center', fontFamily: 'monospace', verticalAlign: 'top', paddingTop: '12px' }}>
-        {distance}px
+      <td style={{ textAlign: 'center', fontFamily: 'monospace', verticalAlign: 'top', paddingTop: '12px', color: distance === null ? 'var(--color-text-muted)' : 'inherit' }}>
+        {distance === null ? '—' : `${distance}px`}
       </td>
       <td style={{ verticalAlign: 'top', paddingTop: '8px' }}>
         <button 
