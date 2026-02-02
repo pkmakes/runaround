@@ -142,7 +142,14 @@ export function PathRow({ path, index }: Props) {
         {distance}px
       </td>
       <td style={{ verticalAlign: 'top', paddingTop: '8px' }}>
-        <button className="delete-btn" onClick={() => deletePath(path.id)}>
+        <button 
+          className="delete-btn" 
+          onClick={() => {
+            if (window.confirm('Möchten Sie diesen Laufweg wirklich löschen?')) {
+              deletePath(path.id)
+            }
+          }}
+        >
           ✕
         </button>
       </td>

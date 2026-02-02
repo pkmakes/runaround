@@ -347,7 +347,11 @@ export function Sidebar() {
           <button
             className="delete-btn"
             style={{ marginTop: '8px', width: '100%' }}
-            onClick={() => deleteRect(selectedRect.id)}
+            onClick={() => {
+              if (window.confirm(`Möchten Sie das Rechteck "${selectedRect.name}" wirklich löschen?`)) {
+                deleteRect(selectedRect.id)
+              }
+            }}
           >
             Rechteck löschen
           </button>
