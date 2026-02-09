@@ -1,13 +1,46 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import type Konva from 'konva'
-import type { PathRow } from '../../state/store'
+import type { PathRow, RectNode, DockSide } from '../../state/store'
 import { manhattanLength } from '../geometry'
+
+function formatDockSide(side: DockSide): string {
+  switch (side) {
+    case 'top':
+      return 'oben'
+    case 'right':
+      return 'rechts'
+    case 'bottom':
+      return 'unten'
+    case 'left':
+      return 'links'
+    default:
+      // Fallback für unerwartete Werte
+      console.warn('Unerwarteter DockSide-Wert:', side)
+      return String(side)
+  }
+}
+
+function formatPathEndpoint(
+  rectId: string,
+  side: DockSide,
+  rects: RectNode[]
+): string {
+  const rect = rects.find((r) => r.id === rectId)
+  const rectName = rect?.name || 'Unbekannt'
+  // Debug: Prüfe den tatsächlichen Wert von side
+  if (typeof side !== 'string' || !['top', 'right', 'bottom', 'left'].includes(side)) {
+    console.warn('Ungültiger side-Wert:', side, 'für rectId:', rectId)
+  }
+  const sideName = formatDockSide(side)
+  return `${rectName} (${sideName})`
+}
 
 export function exportPdfCombined(
   stage: Konva.Stage | null,
   paths: PathRow[],
-  pathOrder: string[]
+  pathOrder: string[],
+  rects: RectNode[]
 ): void {
   if (!stage) {
     alert('Stage nicht verfügbar')
@@ -74,11 +107,13 @@ export function exportPdfCombined(
       path.fields.begruendung || '-',
       path.fields.kommentar || '-',
       manhattanLength(path.points) + ' px',
+      formatPathEndpoint(path.from.rectId, path.from.side, rects),
+      formatPathEndpoint(path.to.rectId, path.to.side, rects),
     ])
 
     autoTable(doc, {
       startY: 28,
-      head: [['Nr.', 'Beschreibung', 'Knackpunkt', 'Begründung', 'Kommentar', 'Distanz']],
+      head: [['Nr.', 'Beschreibung', 'Knackpunkt', 'Begründung', 'Kommentar', 'Distanz', 'Start', 'End']],
       body: tableData,
       styles: {
         fontSize: 8,
@@ -95,6 +130,8 @@ export function exportPdfCombined(
         3: { cellWidth: 40 },
         4: { cellWidth: 40 },
         5: { cellWidth: 20 },
+        6: { cellWidth: 35 },
+        7: { cellWidth: 35 },
       },
     })
   }

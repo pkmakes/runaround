@@ -11,6 +11,7 @@ export function Topbar() {
   const setState = useStore((s) => s.setState)
   const paths = useStore((s) => s.paths)
   const pathOrder = useStore((s) => s.pathOrder)
+  const rects = useStore((s) => s.rects)
   const hasUnsavedChanges = useStore((s) => s.hasUnsavedChanges)
   const markAsSaved = useStore((s) => s.markAsSaved)
 
@@ -57,11 +58,11 @@ export function Topbar() {
       alert('Keine Laufwege zum Exportieren vorhanden.')
       return
     }
-    exportExcel(paths, pathOrder)
+    exportExcel(paths, pathOrder, rects)
   }
 
   const handleExportPdf = () => {
-    exportPdfCombined(stageRef.current, paths, pathOrder)
+    exportPdfCombined(stageRef.current, paths, pathOrder, rects)
   }
 
   return (

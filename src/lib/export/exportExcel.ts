@@ -1,8 +1,44 @@
 import * as XLSX from 'xlsx'
-import type { PathRow } from '../../state/store'
+import type { PathRow, RectNode, DockSide } from '../../state/store'
 import { manhattanLength } from '../geometry'
 
-export function exportExcel(paths: PathRow[], pathOrder: string[]): void {
+function formatDockSide(side: DockSide): string {
+  switch (side) {
+    case 'top':
+      return 'oben'
+    case 'right':
+      return 'rechts'
+    case 'bottom':
+      return 'unten'
+    case 'left':
+      return 'links'
+    default:
+      // Fallback für unerwartete Werte
+      console.warn('Unerwarteter DockSide-Wert:', side)
+      return String(side)
+  }
+}
+
+function formatPathEndpoint(
+  rectId: string,
+  side: DockSide,
+  rects: RectNode[]
+): string {
+  const rect = rects.find((r) => r.id === rectId)
+  const rectName = rect?.name || 'Unbekannt'
+  // Debug: Prüfe den tatsächlichen Wert von side
+  if (typeof side !== 'string' || !['top', 'right', 'bottom', 'left'].includes(side)) {
+    console.warn('Ungültiger side-Wert:', side, 'für rectId:', rectId)
+  }
+  const sideName = formatDockSide(side)
+  return `${rectName} (${sideName})`
+}
+
+export function exportExcel(
+  paths: PathRow[],
+  pathOrder: string[],
+  rects: RectNode[]
+): void {
   const orderedPaths = pathOrder
     .map((id) => paths.find((p) => p.id === id))
     .filter((p): p is PathRow => p !== undefined)
@@ -14,6 +50,8 @@ export function exportExcel(paths: PathRow[], pathOrder: string[]): void {
     'Begründung': path.fields.begruendung,
     'Kommentar': path.fields.kommentar,
     'Distanz (px)': manhattanLength(path.points),
+    'Start': formatPathEndpoint(path.from.rectId, path.from.side, rects),
+    'End': formatPathEndpoint(path.to.rectId, path.to.side, rects),
   }))
 
   const worksheet = XLSX.utils.json_to_sheet(data)
@@ -28,6 +66,8 @@ export function exportExcel(paths: PathRow[], pathOrder: string[]): void {
     { wch: 30 },
     { wch: 30 },
     { wch: 12 },
+    { wch: 25 },
+    { wch: 25 },
   ]
   worksheet['!cols'] = colWidths
 
