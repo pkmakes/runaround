@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useStore } from '../../state/store'
+import kisLogo from '../../assets/kis-logo.png'
 import { downloadProjectJson, loadProjectJson } from '../../lib/persistence/saveLoad'
 import { exportExcel } from '../../lib/export/exportExcel'
 import { exportPdfCombined } from '../../lib/export/exportPdfCombined'
@@ -67,10 +68,16 @@ export function Topbar() {
 
   return (
     <header className="topbar">
-      <h1>
-        Runaround
-        {hasUnsavedChanges && <span className="unsaved-indicator" title="Ungespeicherte Änderungen">●</span>}
-      </h1>
+      <div className="app-branding">
+        <img src={kisLogo} alt="Kautz Intelligent Solutions" className="app-branding__logo" />
+        <div className="app-branding__text">
+          <span className="app-title">
+            Runaround
+            {hasUnsavedChanges && <span className="unsaved-indicator" title="Ungespeicherte Änderungen"> ●</span>}
+          </span>
+          <span className="app-branding__subtitle">by kautz intelligent solutions</span>
+        </div>
+      </div>
       <button className="topbar-btn" onClick={handleNew}>
         Neu
       </button>
