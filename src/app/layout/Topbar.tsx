@@ -44,6 +44,7 @@ export function Topbar() {
           rects: data.rects,
           paths: data.paths,
           pathOrder: data.pathOrder,
+          ...(data.overlapSpacing != null && { overlapSpacing: data.overlapSpacing }),
           hasUnsavedChanges: false,
           ui: { mode: 'layout', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: null, hoveredPathId: null },
         })

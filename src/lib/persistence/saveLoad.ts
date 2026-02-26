@@ -9,6 +9,7 @@ export function stateToProjectData(state: AppState): ProjectData {
     rects: state.rects,
     paths: state.paths,
     pathOrder: state.pathOrder,
+    overlapSpacing: state.overlapSpacing,
   }
 }
 

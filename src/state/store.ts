@@ -40,6 +40,7 @@ export type AppState = {
   pathOrder: string[]
   rectFontSize: number
   pathThickness: number
+  overlapSpacing: number
   hasUnsavedChanges: boolean
   ui: {
     mode: 'layout' | 'addPath'
@@ -73,6 +74,7 @@ type Actions = {
   setState: (state: Partial<AppState>) => void
   setRectFontSize: (size: number) => void
   setPathThickness: (thickness: number) => void
+  setOverlapSpacing: (spacing: number) => void
   reset: () => void
   markAsSaved: () => void
 }
@@ -84,6 +86,7 @@ const initialState: AppState = {
   pathOrder: [],
   rectFontSize: 12,
   pathThickness: 2,
+  overlapSpacing: 6,
   hasUnsavedChanges: false,
   ui: {
     mode: 'layout',
@@ -292,6 +295,12 @@ export const useStore = create<AppState & Actions>()(
     setPathThickness: (thickness) =>
       set((state) => {
         state.pathThickness = Math.min(8, Math.max(1, thickness))
+        state.hasUnsavedChanges = true
+      }),
+
+    setOverlapSpacing: (spacing) =>
+      set((state) => {
+        state.overlapSpacing = Math.min(12, Math.max(4, spacing))
         state.hasUnsavedChanges = true
       }),
 

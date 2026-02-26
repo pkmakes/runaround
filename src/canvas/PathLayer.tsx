@@ -1,7 +1,7 @@
 import { Line, Arrow, Rect } from 'react-konva'
-import { usePaths, useRects, useUIMode, useSelectedPathId, usePathThickness, useHoveredPathId } from '../state/selectors'
+import { usePaths, useRects, useUIMode, useSelectedPathId, usePathThickness, useHoveredPathId, usePathOrder, useOverlapSpacing } from '../state/selectors'
 import { useStore } from '../state/store'
-import { calculateSegmentThicknesses } from '../lib/routing/overlap'
+import { calculateSegmentOffsets, type SegmentWithOffset } from '../lib/routing/overlap'
 import { useMemo, useState } from 'react'
 
 const ARROW_POINTER_LENGTH = 12
@@ -10,30 +10,23 @@ const BASE_COLOR = '#5fb3b3'
 const HOVER_COLOR = '#4a9c9c'
 const DRAG_HANDLE_SIZE = 8
 
-type SegmentData = {
-  x1: number
-  y1: number
-  x2: number
-  y2: number
-  thickness: number
-  isHorizontal: boolean
-  segmentIndex: number
-}
-
 export function PathLayer() {
   const paths = usePaths()
+  const pathOrder = usePathOrder()
   const mode = useUIMode()
   const selectedPathId = useSelectedPathId()
   const hoveredPathId = useHoveredPathId()
   const pathThickness = usePathThickness()
+  const overlapSpacing = useOverlapSpacing()
   const setState = useStore((s) => s.setState)
 
-  // Collect all path points for overlap calculation
-  const allPathsPoints = useMemo(() => paths.map((p) => p.points), [paths])
+  const allPaths = useMemo(
+    () => paths.filter((p) => !p.isPlaceholder && p.points.length >= 4).map((p) => ({ id: p.id, points: p.points })),
+    [paths]
+  )
 
   const handlePathClick = (pathId: string) => {
     if (mode === 'addPath') {
-      // Im Laufweg-Modus: Pfad auswählen/abwählen
       const newSelectedId = selectedPathId === pathId ? null : pathId
       setState({ ui: { mode: 'addPath', pendingStart: null, selectedRectId: null, editingRectId: null, selectedPathId: newSelectedId, hoveredPathId: null } })
     }
@@ -44,16 +37,13 @@ export function PathLayer() {
       {paths.map((path) => {
         if (path.isPlaceholder || path.points.length < 4) return null
 
-        // Calculate thickness for each segment
-        const segmentsWithThickness = calculateSegmentThicknesses(
+        const segmentsWithOffset = calculateSegmentOffsets(
+          path.id,
           path.points,
-          allPathsPoints,
-          pathThickness
+          allPaths,
+          pathOrder,
+          overlapSpacing
         )
-
-        // Get the last segment for arrow direction
-        const lastSegment = segmentsWithThickness[segmentsWithThickness.length - 1]
-        const lastThickness = lastSegment?.thickness || 2
 
         const isSelected = selectedPathId === path.id
         const isHovered = hoveredPathId === path.id
@@ -63,8 +53,8 @@ export function PathLayer() {
             key={path.id}
             pathId={path.id}
             points={path.points}
-            segmentsWithThickness={segmentsWithThickness}
-            lastThickness={lastThickness}
+            segmentsWithOffset={segmentsWithOffset}
+            pathThickness={pathThickness}
             isPathMode={mode === 'addPath'}
             isSelected={isSelected}
             isHovered={isHovered}
@@ -76,25 +66,27 @@ export function PathLayer() {
   )
 }
 
-// Prüft ob zwei Segmente kollinear sind (gleiche Achse und gleiche Position auf dieser Achse)
-function areSegmentsCollinear(seg1: SegmentData, seg2: SegmentData): boolean {
-  // Beide müssen die gleiche Orientierung haben
+function areSegmentsCollinear(seg1: SegmentWithOffset, seg2: SegmentWithOffset): boolean {
   if (seg1.isHorizontal !== seg2.isHorizontal) return false
-  
   if (seg1.isHorizontal) {
-    // Beide horizontal - prüfe ob gleicher Y-Wert
     return Math.abs(seg1.y1 - seg2.y1) < 1
-  } else {
-    // Beide vertikal - prüfe ob gleicher X-Wert
-    return Math.abs(seg1.x1 - seg2.x1) < 1
   }
+  return Math.abs(seg1.x1 - seg2.x1) < 1
+}
+
+function applyOffsetToSegment(seg: SegmentWithOffset): [number, number, number, number] {
+  const o = seg.offset
+  if (seg.isHorizontal) {
+    return [seg.x1, seg.y1 + o, seg.x2, seg.y2 + o]
+  }
+  return [seg.x1 + o, seg.y1, seg.x2 + o, seg.y2]
 }
 
 function DraggablePath({
   pathId,
   points,
-  segmentsWithThickness,
-  lastThickness,
+  segmentsWithOffset,
+  pathThickness,
   isPathMode,
   isSelected,
   isHovered,
@@ -102,8 +94,8 @@ function DraggablePath({
 }: {
   pathId: string
   points: number[]
-  segmentsWithThickness: SegmentData[]
-  lastThickness: number
+  segmentsWithOffset: SegmentWithOffset[]
+  pathThickness: number
   isPathMode: boolean
   isSelected: boolean
   isHovered: boolean
@@ -114,14 +106,13 @@ function DraggablePath({
   const [hoveredSegment, setHoveredSegment] = useState<number | null>(null)
   const [draggingSegment, setDraggingSegment] = useState<number | null>(null)
 
-  if (segmentsWithThickness.length === 0) return null
+  if (segmentsWithOffset.length === 0) return null
 
-  const lastIdx = segmentsWithThickness.length - 1
-  const firstSegment = segmentsWithThickness[0]
-  const lastSegment = segmentsWithThickness[lastIdx]
+  const lastIdx = segmentsWithOffset.length - 1
+  const firstSegment = segmentsWithOffset[0]
+  const lastSegment = segmentsWithOffset[lastIdx]
 
-  // Prüft ob ein Segment editierbar ist (nicht kollinear mit erstem oder letztem Segment)
-  const isSegmentEditable = (seg: SegmentData, idx: number): boolean => {
+  const isSegmentEditable = (seg: SegmentWithOffset, idx: number): boolean => {
     // Erstes und letztes Segment sind nie editierbar
     if (idx === 0 || idx === lastIdx) return false
     
@@ -158,28 +149,31 @@ function DraggablePath({
     })
   }
 
-  // Berechne die Drag-Handle-Position für ein Segment
-  const getSegmentHandlePosition = (seg: SegmentData) => {
+  const getSegmentHandlePosition = (seg: SegmentWithOffset) => {
     const midX = (seg.x1 + seg.x2) / 2
     const midY = (seg.y1 + seg.y2) / 2
     return { x: midX, y: midY }
   }
 
+  const strokeWidth = pathThickness + (isSelected || isHovered ? 2 : 0)
+  const strokeColor = (isSelected || isHovered) ? HOVER_COLOR : BASE_COLOR
+
   return (
     <>
-      {/* Render alle Segmente außer dem letzten als Lines */}
-      {segmentsWithThickness.slice(0, -1).map((seg, idx) => {
+      {/* Render alle Segmente außer dem letzten als Lines (mit Offset) */}
+      {segmentsWithOffset.slice(0, -1).map((seg, idx) => {
         const isSegmentHovered = hoveredSegment === idx
         const isDragging = draggingSegment === idx
-        // Segment ist draggable wenn: im Laufweg-Modus, ausgewählt und editierbar
         const canDrag = isPathMode && isSelected && isSegmentEditable(seg, idx)
-        
+        const segColor = isSegmentHovered || isDragging ? HOVER_COLOR : strokeColor
+        const segStrokeWidth = pathThickness + (isSegmentHovered || isSelected || isHovered ? 2 : 0)
+
         return (
           <Line
             key={`seg-${idx}`}
-            points={[seg.x1, seg.y1, seg.x2, seg.y2]}
-            stroke={(isSelected || isHovered) ? HOVER_COLOR : (isSegmentHovered || isDragging ? HOVER_COLOR : BASE_COLOR)}
-            strokeWidth={seg.thickness + ((isSegmentHovered || isSelected || isHovered) ? 2 : 0)}
+            points={applyOffsetToSegment(seg)}
+            stroke={segColor}
+            strokeWidth={segStrokeWidth}
             lineCap="round"
             lineJoin="round"
             shadowColor="rgba(95, 179, 179, 0.4)"
@@ -207,18 +201,37 @@ function DraggablePath({
         )
       })}
 
-      {/* Render das letzte Segment als Arrow */}
-      {segmentsWithThickness.length > 0 && (
+      {/* Diagonale Ecken-Segmente zwischen versetzten Segmenten */}
+      {segmentsWithOffset.slice(0, -1).map((seg, idx) => {
+        const nextSeg = segmentsWithOffset[idx + 1]
+        if (!nextSeg) return null
+        const o1 = seg.offset
+        const o2 = nextSeg.offset
+        const { x2, y2 } = seg
+        const end1 = seg.isHorizontal ? [x2, y2 + o1] : [x2 + o1, y2]
+        const start2 = nextSeg.isHorizontal ? [x2, y2 + o2] : [x2 + o2, y2]
+        if (end1[0] === start2[0] && end1[1] === start2[1]) return null
+        return (
+          <Line
+            key={`corner-${idx}`}
+            points={[...end1, ...start2]}
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            lineCap="round"
+            lineJoin="round"
+            onClick={onPathClick}
+            onTap={onPathClick}
+          />
+        )
+      })}
+
+      {/* Letztes Segment als Arrow (mit Offset) */}
+      {segmentsWithOffset.length > 0 && (
         <Arrow
-          points={[
-            segmentsWithThickness[lastIdx].x1,
-            segmentsWithThickness[lastIdx].y1,
-            segmentsWithThickness[lastIdx].x2,
-            segmentsWithThickness[lastIdx].y2,
-          ]}
-          stroke={(isSelected || isHovered) ? HOVER_COLOR : BASE_COLOR}
-          strokeWidth={lastThickness + ((isSelected || isHovered) ? 2 : 0)}
-          fill={(isSelected || isHovered) ? HOVER_COLOR : BASE_COLOR}
+          points={applyOffsetToSegment(segmentsWithOffset[lastIdx])}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          fill={strokeColor}
           pointerLength={ARROW_POINTER_LENGTH}
           pointerWidth={ARROW_POINTER_WIDTH}
           lineCap="round"
@@ -241,26 +254,8 @@ function DraggablePath({
         />
       )}
 
-      {/* Ecken-Kreise für glatte Übergänge */}
-      {segmentsWithThickness.slice(0, -1).map((seg, idx) => {
-        const nextSeg = segmentsWithThickness[idx + 1]
-        if (!nextSeg) return null
-        
-        const maxThickness = Math.max(seg.thickness, nextSeg.thickness)
-        
-        return (
-          <Line
-            key={`corner-${idx}`}
-            points={[seg.x2, seg.y2]}
-            stroke={BASE_COLOR}
-            strokeWidth={maxThickness}
-            lineCap="round"
-          />
-        )
-      })}
-
       {/* Draggable Handles für editierbare Segmente (nur wenn Pfad ausgewählt) */}
-      {isPathMode && isSelected && segmentsWithThickness.map((seg, idx) => {
+      {isPathMode && isSelected && segmentsWithOffset.map((seg, idx) => {
         // Nur editierbare Segmente bekommen Handles
         if (!isSegmentEditable(seg, idx)) return null
         
@@ -315,7 +310,7 @@ function DraggablePath({
                   newPoints[startPointIndex - 1] = newY
                 }
                 // Nächstes Segment Anfang (Y anpassen)
-                if (idx < segmentsWithThickness.length - 1 && startPointIndex + 5 < newPoints.length) {
+                if (idx < segmentsWithOffset.length - 1 && startPointIndex + 5 < newPoints.length) {
                   newPoints[startPointIndex + 3] = newY
                 }
               } else {
@@ -335,7 +330,7 @@ function DraggablePath({
                   newPoints[startPointIndex - 2] = newX
                 }
                 // Nächstes Segment Anfang (X anpassen)
-                if (idx < segmentsWithThickness.length - 1 && startPointIndex + 4 < newPoints.length) {
+                if (idx < segmentsWithOffset.length - 1 && startPointIndex + 4 < newPoints.length) {
                   newPoints[startPointIndex + 2] = newX
                 }
               }

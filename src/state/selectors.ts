@@ -14,6 +14,7 @@ export const useHoveredPathId = () => useStore((s) => s.ui.hoveredPathId)
 export const useHasUnsavedChanges = () => useStore((s) => s.hasUnsavedChanges)
 export const useRectFontSize = () => useStore((s) => s.rectFontSize)
 export const usePathThickness = () => useStore((s) => s.pathThickness)
+export const useOverlapSpacing = () => useStore((s) => s.overlapSpacing)
 
 export const useOrderedPaths = (): PathRow[] => {
   const paths = useStore((s) => s.paths)

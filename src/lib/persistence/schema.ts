@@ -46,6 +46,7 @@ export const ProjectSchema = z.object({
   rects: z.array(RectNodeSchema),
   paths: z.array(PathRowSchema),
   pathOrder: z.array(z.string()),
+  overlapSpacing: z.number().min(4).max(12).optional(),
 })
 
 export type ProjectData = z.infer<typeof ProjectSchema>

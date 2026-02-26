@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useStore } from '../../state/store'
-import { useUIMode, useRoom, useSelectedRectId, useRects, useRectFontSize, usePathThickness } from '../../state/selectors'
+import { useUIMode, useRoom, useSelectedRectId, useRects, useRectFontSize, usePathThickness, useOverlapSpacing } from '../../state/selectors'
 import { routePath } from '../../lib/routing/router'
 
 export function Sidebar() {
@@ -11,10 +11,12 @@ export function Sidebar() {
   const rects = useRects()
   const rectFontSize = useRectFontSize()
   const pathThickness = usePathThickness()
+  const overlapSpacing = useOverlapSpacing()
   const setMode = useStore((s) => s.setMode)
   const setRoomSize = useStore((s) => s.setRoomSize)
   const setRectFontSize = useStore((s) => s.setRectFontSize)
   const setPathThickness = useStore((s) => s.setPathThickness)
+  const setOverlapSpacing = useStore((s) => s.setOverlapSpacing)
   const addRect = useStore((s) => s.addRect)
   const updateRect = useStore((s) => s.updateRect)
   const deleteRect = useStore((s) => s.deleteRect)
@@ -28,6 +30,7 @@ export function Sidebar() {
   // Lokaler State für Darstellungs-Eingabefelder
   const [fontSizeInput, setFontSizeInput] = useState(String(rectFontSize))
   const [thicknessInput, setThicknessInput] = useState(String(pathThickness))
+  const [overlapSpacingInput, setOverlapSpacingInput] = useState(String(overlapSpacing))
 
   // Synchronisiere lokalen State wenn sich room extern ändert (z.B. durch Drag-Handle)
   useEffect(() => {
@@ -46,6 +49,10 @@ export function Sidebar() {
   useEffect(() => {
     setThicknessInput(String(pathThickness))
   }, [pathThickness])
+
+  useEffect(() => {
+    setOverlapSpacingInput(String(overlapSpacing))
+  }, [overlapSpacing])
 
   const selectedRect = selectedRectId
     ? rects.find((r) => r.id === selectedRectId)
@@ -92,6 +99,11 @@ export function Sidebar() {
   const applyThickness = () => {
     const value = parseInt(thicknessInput) || 2
     setPathThickness(value)
+  }
+
+  const applyOverlapSpacing = () => {
+    const value = parseInt(overlapSpacingInput) || 6
+    setOverlapSpacing(value)
   }
 
   const handleRectUpdate = (id: string, patch: Parameters<typeof updateRect>[1]) => {
@@ -259,6 +271,29 @@ export function Sidebar() {
               min={1}
               max={8}
               title="Stärke der Laufweg-Pfeile"
+            />
+          </div>
+          <div className="sidebar-row">
+            <span className="sidebar-label">Abstand</span>
+            <input
+              type="number"
+              className="sidebar-input"
+              value={overlapSpacingInput}
+              onChange={(e) => setOverlapSpacingInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  applyOverlapSpacing()
+                } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                  setTimeout(() => {
+                    const input = e.target as HTMLInputElement
+                    setOverlapSpacing(parseInt(input.value) || 6)
+                  }, 0)
+                }
+              }}
+              onBlur={applyOverlapSpacing}
+              min={4}
+              max={12}
+              title="Abstand überlappender Linien"
             />
           </div>
         </div>

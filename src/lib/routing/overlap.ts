@@ -14,7 +14,13 @@ export type SegmentWithThickness = Segment & {
   segmentIndex: number
 }
 
+export type SegmentWithOffset = Segment & {
+  offset: number
+  segmentIndex: number
+}
+
 const DEFAULT_BASE_THICKNESS = 2
+const DEFAULT_OFFSET_SPACING = 6
 
 export function getSegmentsFromPoints(points: number[]): Segment[] {
   const segments: Segment[] = []
@@ -62,6 +68,49 @@ function segmentsAreCollinearAndOverlap(seg1: Segment, seg2: Segment): boolean {
 
     return max1 > min2 && max2 > min1
   }
+}
+
+// Calculate offset for each segment based on overlaps - paths are drawn side by side
+export function calculateSegmentOffsets(
+  pathId: string,
+  pathPoints: number[],
+  allPaths: { id: string; points: number[] }[],
+  pathOrder: string[],
+  offsetSpacing: number = DEFAULT_OFFSET_SPACING
+): SegmentWithOffset[] {
+  const segments = getSegmentsFromPoints(pathPoints)
+
+  return segments.map((segment, index) => {
+    const overlappingPathIds = new Set<string>()
+
+    for (const other of allPaths) {
+      if (other.id === pathId) {
+        overlappingPathIds.add(pathId)
+        continue
+      }
+      const otherSegments = getSegmentsFromPoints(other.points)
+      for (const otherSeg of otherSegments) {
+        if (segmentsAreCollinearAndOverlap(segment, otherSeg)) {
+          overlappingPathIds.add(other.id)
+          break
+        }
+      }
+    }
+
+    const sortedOverlapping = [...overlappingPathIds].sort(
+      (a, b) => pathOrder.indexOf(a) - pathOrder.indexOf(b)
+    )
+    const pathIndexInGroup = sortedOverlapping.indexOf(pathId)
+    const overlapCount = sortedOverlapping.length
+    const centeredIndex = pathIndexInGroup - (overlapCount - 1) / 2
+    const offset = centeredIndex * offsetSpacing
+
+    return {
+      ...segment,
+      offset,
+      segmentIndex: index,
+    }
+  })
 }
 
 // Calculate thickness for each segment based on overlaps with other paths
