@@ -127,6 +127,27 @@ html, body, #root {
   50% { opacity: 0.5; }
 }
 
+.topbar-project-name {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: var(--font);
+  width: 180px;
+  transition: border-color 0.15s ease;
+}
+
+.topbar-project-name:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.topbar-project-name::placeholder {
+  color: var(--color-text-muted);
+}
+
 .topbar-btn {
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);

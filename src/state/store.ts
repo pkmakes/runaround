@@ -34,6 +34,7 @@ export type PathRow = {
 }
 
 export type AppState = {
+  projectName: string
   room: Room
   rects: RectNode[]
   paths: PathRow[]
@@ -72,6 +73,7 @@ type Actions = {
   reorderPaths: (newOrderIds: string[]) => void
   recomputeAllPaths: (router: (from: { rectId: string; side: DockSide }, to: { rectId: string; side: DockSide }, rects: RectNode[], room: Room) => number[]) => void
   setState: (state: Partial<AppState>) => void
+  setProjectName: (name: string) => void
   setRectFontSize: (size: number) => void
   setPathThickness: (thickness: number) => void
   setOverlapSpacing: (spacing: number) => void
@@ -80,6 +82,7 @@ type Actions = {
 }
 
 const initialState: AppState = {
+  projectName: '',
   room: { width: 1200, height: 600 },
   rects: [],
   paths: [],
@@ -301,6 +304,12 @@ export const useStore = create<AppState & Actions>()(
     setOverlapSpacing: (spacing) =>
       set((state) => {
         state.overlapSpacing = Math.min(12, Math.max(4, spacing))
+        state.hasUnsavedChanges = true
+      }),
+
+    setProjectName: (name) =>
+      set((state) => {
+        state.projectName = name
         state.hasUnsavedChanges = true
       }),
 

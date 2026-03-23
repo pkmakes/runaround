@@ -3,7 +3,7 @@ import { useStore } from '../../state/store'
 import kisLogo from '../../assets/kis-logo.png'
 import { downloadProjectJson, loadProjectJson } from '../../lib/persistence/saveLoad'
 import { exportExcel } from '../../lib/export/exportExcel'
-import { exportPdfCombined } from '../../lib/export/exportPdfCombined'
+import { exportPng } from '../../lib/export/exportPng'
 import { stageRef } from '../../canvas/stageRef'
 
 export function Topbar() {
@@ -13,8 +13,11 @@ export function Topbar() {
   const paths = useStore((s) => s.paths)
   const pathOrder = useStore((s) => s.pathOrder)
   const rects = useStore((s) => s.rects)
+  const room = useStore((s) => s.room)
   const hasUnsavedChanges = useStore((s) => s.hasUnsavedChanges)
   const markAsSaved = useStore((s) => s.markAsSaved)
+  const projectName = useStore((s) => s.projectName)
+  const setProjectName = useStore((s) => s.setProjectName)
 
   const getState = () => useStore.getState()
 
@@ -40,6 +43,7 @@ export function Topbar() {
       try {
         const data = await loadProjectJson(file)
         setState({
+          projectName: data.projectName ?? '',
           room: data.room,
           rects: data.rects,
           paths: data.paths,
@@ -60,11 +64,11 @@ export function Topbar() {
       alert('Keine Laufwege zum Exportieren vorhanden.')
       return
     }
-    exportExcel(paths, pathOrder, rects)
+    exportExcel(paths, pathOrder, rects, projectName)
   }
 
-  const handleExportPdf = () => {
-    exportPdfCombined(stageRef.current, paths, pathOrder, rects)
+  const handleExportPng = () => {
+    exportPng(stageRef.current, room, projectName)
   }
 
   return (
@@ -79,6 +83,14 @@ export function Topbar() {
           <span className="app-branding__subtitle">by kautz intelligent solutions</span>
         </div>
       </div>
+      <input
+        type="text"
+        className="topbar-project-name"
+        placeholder="Projektname…"
+        value={projectName}
+        onChange={(e) => setProjectName(e.target.value)}
+        title="Projektname (wird im Dateinamen verwendet)"
+      />
       <button className="topbar-btn" onClick={handleNew}>
         Neu
       </button>
@@ -98,8 +110,8 @@ export function Topbar() {
       <button className="topbar-btn" onClick={handleExportExcel}>
         Export Excel
       </button>
-      <button className="topbar-btn" onClick={handleExportPdf}>
-        Export PDF
+      <button className="topbar-btn" onClick={handleExportPng}>
+        Export Bild
       </button>
     </header>
   )

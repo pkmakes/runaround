@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx'
 import type { PathRow, RectNode, DockSide } from '../../state/store'
 import { manhattanLength } from '../geometry'
+import { buildExportBaseName } from '../persistence/saveLoad'
 
 function formatDockSide(side: DockSide): string {
   switch (side) {
@@ -37,7 +38,8 @@ function formatPathEndpoint(
 export function exportExcel(
   paths: PathRow[],
   pathOrder: string[],
-  rects: RectNode[]
+  rects: RectNode[],
+  projectName = ''
 ): void {
   const orderedPaths = pathOrder
     .map((id) => paths.find((p) => p.id === id))
@@ -71,6 +73,6 @@ export function exportExcel(
   ]
   worksheet['!cols'] = colWidths
 
-  XLSX.writeFile(workbook, `runaround-laufwege-${new Date().toISOString().slice(0, 10)}.xlsx`)
+  XLSX.writeFile(workbook, `${buildExportBaseName(projectName)}.xlsx`)
 }
 

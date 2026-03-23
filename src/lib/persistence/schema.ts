@@ -42,6 +42,7 @@ export const PathRowSchema = z.object({
 
 export const ProjectSchema = z.object({
   version: z.literal(1),
+  projectName: z.string().optional().default(''),
   room: RoomSchema,
   rects: z.array(RectNodeSchema),
   paths: z.array(PathRowSchema),

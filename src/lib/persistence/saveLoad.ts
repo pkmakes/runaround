@@ -5,12 +5,24 @@ import type { ProjectData } from './schema'
 export function stateToProjectData(state: AppState): ProjectData {
   return {
     version: 1,
+    projectName: state.projectName,
     room: state.room,
     rects: state.rects,
     paths: state.paths,
     pathOrder: state.pathOrder,
     overlapSpacing: state.overlapSpacing,
   }
+}
+
+function buildFileName(projectName: string, suffix: string): string {
+  const base = projectName.trim() || 'runaround'
+  const safe = base.replace(/[^a-zA-Z0-9_\-äöüÄÖÜß ]/g, '').trim()
+  const date = new Date().toISOString().slice(0, 10)
+  return `${safe}-${suffix}-${date}`
+}
+
+export function buildExportBaseName(projectName: string): string {
+  return buildFileName(projectName, 'export')
 }
 
 export function downloadProjectJson(state: AppState): void {
@@ -21,7 +33,7 @@ export function downloadProjectJson(state: AppState): void {
   
   const a = document.createElement('a')
   a.href = url
-  a.download = `runaround-${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `${buildExportBaseName(state.projectName)}.json`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
